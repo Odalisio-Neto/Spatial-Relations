@@ -39,17 +39,36 @@ def translate_bbs( bb1: tf.Tensor, bb2: tf.Tensor, is_class_first = False,
         bb2 = tf.constant([0.3, 0.3, 0.1, 0.1])
         translated_bb1, translated_bb2 = translate_bbs(bb1, bb2, is_class_first=True, is_yolo_format=True)
     """
-    if is_class_first:
-        indices = (1, 2, 3, 4) if is_yolo_format else (0, 1, 2, 3)
-    else:
-        indices = (0, 1, 2, 3) if is_yolo_format else (0, 1, 2, 3)
+    # if is_class_first:
+    #     indices = (1, 2, 3, 4) if is_yolo_format else (0, 1, 2, 3)
+    # else:
+    #     indices = (0, 1, 2, 3) if is_yolo_format else (0, 1, 2, 3)
     
-    x1, y1, w1, h1 = bb1[ ..., indices ]
-    x2, y2, w2, h2 = bb2[ ..., indices ]
+    # x1, y1, w1, h1 = bb1[ ..., indices ]
+    # x2, y2, w2, h2 = bb2[ ..., indices ]
     
-    if is_yolo_format:
-        x1, y1 = x1 - w1 / 2.0, y1 - h1 / 2.0
-        x2, y2 = x2 - w2 / 2.0, y2 - h2 / 2.0
+    # if is_yolo_format:
+    #     x1, y1 = x1 - w1 / 2.0, y1 - h1 / 2.0
+    #     x2, y2 = x2 - w2 / 2.0, y2 - h2 / 2.0
+    if is_class_first :
+        if is_yolo_format :
+            x1, y1 = bb1[ ..., 1 ] - bb1[ ..., 3 ] / 2.0, bb1[ ..., 2 ] - bb1[ ..., 4 ] / 2.0
+            x2, y2 = bb2[ ..., 1 ] - bb2[ ..., 3 ] / 2.0, bb2[ ..., 2 ] - bb2[ ..., 4 ] / 2.0
+            w1, h1, w2, h2 = bb1[ ..., 3 ], bb1[ ..., 4 ], bb2[ ..., 3 ], bb2[ ..., 4 ]
+        else :
+            x1, y1, w1, h1 = bb1[ ..., 1 ], bb1[ ..., 2 ], bb1[ ..., 3 ], bb1[ ..., 4 ]
+            x2, y2, w2, h2 = bb2[ ..., 1 ], bb2[ ..., 2 ], bb2[ ..., 3 ], bb2[ ..., 4 ]
+    
+    else :
+        if is_yolo_format :
+            x1, y1 = bb1[ ..., 0 ] - bb1[ ..., 2 ] / 2.0, bb1[ ..., 1 ] - bb1[ ..., 3 ] / 2.0
+            x2, y2 = bb2[ ..., 0 ] - bb2[ ..., 2 ] / 2.0, bb2[ ..., 1 ] - bb2[ ..., 3 ] / 2.0
+            w1, h1, w2, h2 = bb1[ ..., 2 ], bb1[ ..., 3 ], bb2[ ..., 3 ], bb2[ ..., 3 ]
+        else :
+            x1, y1, w1, h1 = bb1[ ..., 0 ], bb1[ ..., 1 ], bb1[ ..., 2 ], bb1[ ..., 3 ]
+            x2, y2, w2, h2 = bb2[ ..., 0 ], bb2[ ..., 1 ], bb2[ ..., 2 ], bb2[ ..., 3 ]
+    
+    return (x1, y1, w1, h1), (x2, y2, w2, h2)
     
     return (x1, y1, w1, h1), (x2, y2, w2, h2)
 
@@ -74,7 +93,7 @@ def O( bb1: tf.Tensor, bb2: tf.Tensor, is_yolo_format = True, is_class_first = F
     
         print( 'Check for O (True): ', O( bbs = (bb1, bb2), is_yolo_format = True, is_class_first = False ) )
     """
-    (x1, y1, w1, h1), (x2, y2, w2, h2) = translate_bbs( bb1, bb2 )
+    (x1, y1, w1, h1), (x2, y2, w2, h2) = translate_bbs( bb1, bb2, is_yolo_format = is_yolo_format, is_class_first = is_class_first )
     
     condition1 = tf.logical_and( tf.greater_equal( x2, x1 ), tf.less_equal( x2 + w2, x1 + w1 ) )
     condition2 = tf.logical_and( tf.greater( y2, y1 ), tf.less( y2 + h2, y1 + h1 ) )
@@ -84,7 +103,7 @@ def O( bb1: tf.Tensor, bb2: tf.Tensor, is_yolo_format = True, is_class_first = F
 
 @tf.function
 # def PO(bbs, is_yolo_format=True):
-def PO( bb1: tf.Tensor, bb2: tf.Tensor, is_yolo_format = True, is_class_first = True ):
+def PO( bb1: tf.Tensor, bb2: tf.Tensor, is_yolo_format = True, is_class_first = False ):
     """
     Check if two bounding boxes partially overlap.
 
@@ -99,7 +118,7 @@ def PO( bb1: tf.Tensor, bb2: tf.Tensor, is_yolo_format = True, is_class_first = 
 
     Note: (x1,y1) and (x2,y2) ordered pair ar located in lowest-left corner of the bounding box
     """
-    (x1, y1, w1, h1), (x2, y2, w2, h2) = translate_bbs( bb1, bb2, is_yolo_format, is_class_first )
+    (x1, y1, w1, h1), (x2, y2, w2, h2) = translate_bbs( bb1, bb2, is_yolo_format = is_yolo_format, is_class_first = is_class_first )
     '''
     mesmo que:
                 # PO 1
@@ -181,7 +200,7 @@ def D( bb1: tf.Tensor, bb2: tf.Tensor, is_yolo_format = True, is_class_first = F
     Returns:
         bool: True if the bounding boxes are disjoint, False otherwise.
     """
-    (x1, y1, w1, h1), (x2, y2, w2, h2) = translate_bbs( bb1, bb2, is_yolo_format, is_class_first )
+    (x1, y1, w1, h1), (x2, y2, w2, h2) = translate_bbs( bb1, bb2, is_yolo_format = is_yolo_format, is_class_first = is_class_first )
     
     condition1 = tf.less( x2 + w2, x1 )
     condition2 = tf.greater( x2, x1 + w1 )
@@ -190,9 +209,8 @@ def D( bb1: tf.Tensor, bb2: tf.Tensor, is_yolo_format = True, is_class_first = F
     
     bool_tensor = tf.logical_or( tf.logical_or( condition1, condition2 ),
                                  tf.logical_or( condition3, condition4 ) )
-    float_tensor = tf.cast( bool_tensor, dtype = tf.float32 )
     
-    return float_tensor
+    return bool_tensor
 
 
 import matplotlib.pyplot as plt
@@ -240,7 +258,7 @@ if __name__ == '__main__':
     bb2 = tf.constant( [ 0.3, 0.3, 0.1, 0.1 ] )
     
     print( 'Check for O (True): ',
-           O( bbs = (bb1, bb2), is_yolo_format = True, is_class_first = False ) )
+           O( bb1, bb2, is_yolo_format = True, is_class_first = False ) )
     plot_bounding_boxes( bb1, bb2 )
     
     ## Exemplo False
@@ -248,7 +266,7 @@ if __name__ == '__main__':
     bb2 = tf.constant( [ 0.8, 0.7, 0.2, 0.3 ] )
     
     print( 'Check for O (False): ',
-           O( bbs = (bb1, bb2), is_yolo_format = True, is_class_first = False ) )
+           O( bb1, bb2, is_yolo_format = True, is_class_first = False ) )
     plot_bounding_boxes( bb1, bb2 )
     #
     # PO(bb1,bb2)
