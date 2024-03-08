@@ -250,8 +250,12 @@ def generate_eq_spaced_bbs_in_(bb, dictionary_with_letters=True):
 
 
     if dictionary_with_letters:
-        letters = list(string.ascii_uppercase)[:len(bbs)]
+        letters = list(string.ascii_uppercase)[:len(bbs) + 1]
         result_bbs = {letter: box for letter, box in zip(letters, bbs)}
+        greater_box = [bb[0], bb[1], 2 * (result_bbs['N'][0] - bb[0]), 2 * (result_bbs['P'][1] - bb[1])]
+        
+        result_bbs[letters[-1]] = greater_box
+        
         return result_bbs
     else:
         return bbs
@@ -291,33 +295,38 @@ def plot_all_bb_with_names(bb, boxes, name=list(string.ascii_uppercase)):
             
             
             if i == 0:
-                ed = 'green'
-            elif (i % 2 == 0 and not (i == '0')):
+                ed = 'orange'
+            elif (i % 2 == 0 and not (i == '0') and not (i == len(boxes) - 1)):
                 ed = 'red'
+            elif i == len( boxes ) - 1 :
+                ed = 'green'
             else:
                 ed = 'magenta'
 
             ax.add_patch(get_rectangle(box, edcolor=ed))
-            ax.text(box[0], box[1] - 0.02, f'box : {name[i]}', ha='center', va='center', fontsize=12,
+            ax.text(box[0] + 0.3 * box[2], box[1] - 0.55 * box[3], f'box : {name[i]}', ha='center', va='center', fontsize=12,
                     color='blue')
     else:
       for i in range(0, len(boxes)):
         if i == 0:
-            ed = 'green'
-        elif (i % 2 == 0 and not (i == '0')):
+            ed = 'orange'
+        elif (i % 2 == 0 and not (i == '0') and not (i == len(boxes) - 1)):
             ed = 'red'
+        elif i == len( boxes ) - 1 :
+            ed = 'green'
         else:
             ed = 'magenta'
 
         ax.add_patch(get_rectangle(boxes[i], edcolor=ed))
-        ax.text(boxes[i][0], boxes[i][1] - 0.02, f'box : {name[i]}', ha='center', va='center', fontsize=12,
+        ax.text(boxes[i][0], boxes[i][1] - 0.10, f'box : {name[i]}', ha='center', va='center', fontsize=12,
                 color='blue')  
         
     
 
     ax.legend(handles=[patches.Patch(color='red', label='diagonals'),
                        patches.Patch(color='magenta', label='horizontal and vertical'),
-                       patches.Patch(color='green', label='center_box')])
+                       patches.Patch(color='orange', label='center_box'),
+                       patches.Patch(color='green', label='greater_box')])
     ax.invert_yaxis()
     fig.tight_layout()
     plt.show()
@@ -327,7 +336,7 @@ if __name__ == '__main__':
     bb1 = [0.5, 0.5, 0.2, 0.6]  # Bounding box 
 
     boxes = generate_eq_spaced_bbs_in_(bb1)
-    
+    print('box : ', boxes['Z'])
     plot_all_bb_with_names(bb1, boxes)
     # plot_comparisons_diagonals(bb1, boxes)
 
