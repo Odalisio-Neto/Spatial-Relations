@@ -45,7 +45,7 @@ plot_all_bb_with_names(bb1, boxes)
 # Example using ltn_relations_milena.py
 bb1 = tf.constant([0.3, 0.3, 0.2, 0.2])
 bb2 = tf.constant([0.3, 0.3, 0.1, 0.1])
-result = O(bb1, bb2, is_class_first=True, is_yolo_format=True)
+result = O(bb1, bb2, is_class_first=False, is_yolo_format=True)
 print("Overlap Check:", result)
 ```
 
