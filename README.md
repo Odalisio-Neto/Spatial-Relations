@@ -4,6 +4,7 @@
 <p align="center">
 <img src="bounding_boxes_plot.png" alt="Plot" width="400">
 </p>
+
 ## Overview
 
 This repository contains Python scripts for generating and manipulating bounding boxes in computer vision applications. 
@@ -46,6 +47,7 @@ bb1 = tf.constant([0.3, 0.3, 0.2, 0.2])
 bb2 = tf.constant([0.3, 0.3, 0.1, 0.1])
 result = O(bb1, bb2, is_class_first=True, is_yolo_format=True)
 print("Overlap Check:", result)
+```
 
 ## Dependencies
 - NumPy
