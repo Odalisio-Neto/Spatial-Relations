@@ -1,8 +1,7 @@
 # Spatial-Relations
-## Author: Odalisio Leite da Silva Neto
 
 <p align="center">
-<img src="bounding_boxes_plot.png" alt="Plot" width="400">
+<img src="bounding_boxes_plot.png" alt="Plot" width="800">
 </p>
 
 ## Overview
